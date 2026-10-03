@@ -12,6 +12,7 @@ import {
   Item,
   itemAmount,
   npcPrice,
+  print,
   retrieveItem,
   use,
   visitUrl,
@@ -126,17 +127,23 @@ export function fillTo(targetUnits: number): boolean {
 
   while (bestFuels.length > 0 && getFuel() < targetUnits) {
     const curFuelItem = bestFuels.shift()!;
+    print(`curFuelItem is ${curFuelItem}`, "red");
     const nextFuelItem = bestFuels.at(0);
+    print(`nextFuelItem is ${nextFuelItem}`, "red");
     const curEfficiency =
       getAcquirePrice(curFuelItem) / getAverageAdventures(curFuelItem);
+    print(`curEfficiency is ${curEfficiency}`, "red");
     const nextBestEfficiency = nextFuelItem
       ? getAcquirePrice(nextFuelItem) / getAverageAdventures(nextFuelItem)
       : curEfficiency;
+    print(`nextBestEfficiency is ${nextBestEfficiency}`, "red");
     const priceCeiling = Math.floor(
       getAcquirePrice(curFuelItem) * (1.0 + nextBestEfficiency - curEfficiency),
     );
+    print(`priceCeiling is ${priceCeiling}`, "red");
 
     const count = Math.ceil(targetUnits / getAverageAdventures(curFuelItem));
+    print(`count is ${count}`, "red");
 
     if (!canInteract()) {
       // If we can't access the bugbear bakery but do have access to all-purpose flower, use that to get soda bread
@@ -156,11 +163,13 @@ export function fillTo(targetUnits: number): boolean {
         retrieveItem(count, curFuelItem);
       } else retrieveItem(count, curFuelItem);
     } else {
-      withProperty("autoBuyPriceLimit", priceCeiling, () =>
-        retrieveItem(count, curFuelItem),
-      );
+      withProperty("autoBuyPriceLimit", priceCeiling, () => {
+        print(`Attempting to retrieve ${count} of item ${curFuelItem}`, "red");
+        retrieveItem(count, curFuelItem);
+      });
     }
 
+    print(`Attempting to insert fuel`, "red");
     if (
       itemAmount(curFuelItem) > 0 &&
       !insertFuel(curFuelItem, Math.min(itemAmount(curFuelItem), count))
