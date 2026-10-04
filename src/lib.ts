@@ -81,6 +81,7 @@ import {
   isNpcItem,
   npcPrice,
   useFamiliar,
+  print,
 } from "kolmafia";
 
 import logger from "./logger.js";
@@ -1641,17 +1642,23 @@ export function getAllFamiliarTags(familiar: Familiar): FamiliarTag[] {
  * @returns The total value of the items
  */
 export function getAcquirePrice(item: Item, quantity = 1): number {
+  print("Entering getAcquirePrice", "red");
   if (quantity <= 0) return 0;
-
+  print(`Attempting to get price of ${quantity} of item ${item}`, "red");
   const currentAmount = availableAmount(item);
+  print(`Current amount is ${currentAmount}`, "red");
   const amountNeeded = Math.max(0, quantity - currentAmount);
+  print(`Current amount is ${amountNeeded}`, "red");
   const retrieveCost =
     retrievePrice(item, currentAmount + quantity) -
     retrievePrice(item, currentAmount);
+  print(`Current amount is ${retrieveCost}`, "red");
   const mallMinPrice = Math.max(100, 2 * autosellPrice(item));
+  print(`mallMinPrice is ${mallMinPrice}`, "red");
 
   // If it's easy to meatpaste, just rely on retrieveCost
   if (craftType(item) === "Meatpasting" && retrieveCost > 0) {
+    print(`craft type is meatpasting, using retrieveCost`, "red");
     return retrieveCost;
   }
 
@@ -1660,12 +1667,28 @@ export function getAcquirePrice(item: Item, quantity = 1): number {
     npcPrice(item) > 0 &&
     npcPrice(item) < mallPrice(item)
   ) {
+    print(`using npcPrice`, "red");
     // If it's best handled through NPC shops, handle it through NPC shops
     return quantity * npcPrice(item);
   }
 
   if (item.tradeable) {
     if (mallPrice(item) === mallMinPrice) {
+      print(`item is mallMin and tradeable`, "red");
+      print(
+        `cost of amount we currently have at autosell is ${clamp(currentAmount, 0, quantity) * autosellPrice(item)}`,
+        "red",
+      );
+      print(
+        `cost of amount we need to buy from mall is ${amountNeeded * mallPrice(item)}`,
+        "red",
+      );
+      print(
+        `return value is ${
+          clamp(currentAmount, 0, quantity) * autosellPrice(item) +
+          amountNeeded * mallPrice(item)
+        }`,
+      );
       // Value the ones you have at autosell, because that's what you'd sell them at
       // Value the ones you need to buy at the price you'd buy them at
       return (
@@ -1674,21 +1697,30 @@ export function getAcquirePrice(item: Item, quantity = 1): number {
       );
     }
     if (mallPrice(item) > mallMinPrice) {
+      print(
+        `We're valuing at mallPrice, the value is ${quantity * mallPrice(item)}`,
+        "red",
+      );
       // Value them all at mall price
       // regardless of whether you already owned them
       return quantity * mallPrice(item);
     }
+    print("WE'RE IN A FALLTHROUGH CASE THAT SHOULD BE IMPOSSIBLE", "red");
     // The fallthrough case here is that the mallprice is somehow below mall min
     // That shouldn't really happen
     return quantity * autosellPrice(item);
   }
 
   if (item.discardable) {
+    print(
+      `We're in the item.discardable check, return value is ${have(item, quantity) ? quantity * autosellPrice(item) : Infinity}`,
+    );
     return have(item, quantity) ? quantity * autosellPrice(item) : Infinity;
   }
   // If it can't be traded or discarded, and we're passing into this function, it's free
   // There might some day be specific items we don't want to value like this, because you receive only a limited number
   // We'll burn that bridge when we come to it.
+  print("Item cannot be traded or discarded, valuing at 0");
   return 0;
 }
 
