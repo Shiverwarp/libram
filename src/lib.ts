@@ -1648,11 +1648,11 @@ export function getAcquirePrice(item: Item, quantity = 1): number {
   const currentAmount = availableAmount(item);
   print(`Current amount is ${currentAmount}`, "red");
   const amountNeeded = Math.max(0, quantity - currentAmount);
-  print(`Current amount is ${amountNeeded}`, "red");
+  print(`Amount needed ${amountNeeded}`, "red");
   const retrieveCost =
     retrievePrice(item, currentAmount + quantity) -
     retrievePrice(item, currentAmount);
-  print(`Current amount is ${retrieveCost}`, "red");
+  print(`retrieve cost ${retrieveCost}`, "red");
   const mallMinPrice = Math.max(100, 2 * autosellPrice(item));
   print(`mallMinPrice is ${mallMinPrice}`, "red");
 
